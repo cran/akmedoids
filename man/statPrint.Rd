@@ -4,7 +4,7 @@
 \alias{statPrint}
 \title{Descriptive (Change) statistics and plots}
 \usage{
-statPrint(clustr, traj, id_field = TRUE, bandw = 0.25,
+statPrint(clustr, traj, id_field = TRUE, reference = 1, N.quant = 4,
   type = "lines", y.scaling = "fixed")
 }
 \arguments{
@@ -14,7 +14,9 @@ statPrint(clustr, traj, id_field = TRUE, bandw = 0.25,
 
 \item{id_field}{[numeric or character] Whether the first column of the \code{traj} is a unique (\code{id}) field. Default: \code{FALSE}. If \code{TRUE} the function recognises the second column as the first time step.}
 
-\item{bandw}{[numeric] A small probability (quantile) value between \code{[0,1]} to partition the trajectories into three classes, i.e. \code{lower}, \code{central}, and the \code{uppper} classes. The middle of the \code{central} class is defined by the average slope of all trajectories. The upper and the lower limits of the \code{central} class is determined by the value of \code{bandw}. Default value is \code{0.25}, indicating that all slopes within 25th quantiles of the maximum slopes on both sides of the average slope are categorised as \code{central} class.}
+\item{reference}{[numeric] Specifying the reference line from which the direction of each group is measured. Options are: \code{1}: slope of mean trajectory, \code{2}: slope of medoid trajectory, \code{3}: slope of a horizontal line (i.e. slope = 0). Default: \code{1}.}
+
+\item{N.quant}{[numeric] Number of equal intervals (quantiles) to create between the reference line \code{(R)} and the medoids \code{(M)} of the most-diverging groups of both sides of \code{(R)}. Default is \code{4} - meaning quartile subdivisions on each side of \code{(R)}. In this scenario, the function returns the quartile in which the medoid of each group falls. This result can be used to further categorise the groups into 'classes'. For example, groups that fall within the \code{1st} quartile may be classified as 'Stable' groups (Adepeju et al. 2019).}
 
 \item{type}{[character] plot type. Available options are: \code{"lines"} and \code{"stacked"}.}
 
@@ -39,9 +41,11 @@ traj <- props(traj, id_field = TRUE)
 clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3,6))
 clustr <- as.vector(clustr$optimSolution)
 print(statPrint(clustr, traj, id_field=TRUE, type="lines", y.scaling="fixed"))
-print(statPrint(clustr, traj, id_field=TRUE, bandw = 0.30, type="stacked"))
+print(statPrint(clustr, traj, id_field=TRUE, reference = 1, N.quant = 8, type="stacked"))
 }
 \references{
+\code{1}. Adepeju, M. et al. (2019). Anchored k-medoids: A novel adaptation of k-means further refined to measure inequality in the exposure to crime across micro places (Submitted).
+
 \code{Wickham H. (2016). Elegant graphics for Data Analysis. Spring-Verlag New York (2016)}
 }
 \keyword{clusters}

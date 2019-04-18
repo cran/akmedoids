@@ -6,7 +6,8 @@
 #' @param id_field [numeric or character] Whether the first column of the \code{traj} is a unique (\code{id}) field. Default: \code{FALSE}. If \code{TRUE} the function recognises the second column as the first time step.
 #' @param type [character] plot type. Available options are: \code{"lines"} and \code{"stacked"}.
 #' @param y.scaling [character] works only if \code{type="lines"}. \code{y.scaling} set the vertical scales of the cluster panels. Options are: \code{"fixed"}: uses uniform scale for all panels, \code{"free"}: uses variable scales for panels.
-#' @param bandw [numeric] A small probability (quantile) value between \code{[0,1]} to partition the trajectories into three classes, i.e. \code{lower}, \code{central}, and the \code{uppper} classes. The middle of the \code{central} class is defined by the average slope of all trajectories. The upper and the lower limits of the \code{central} class is determined by the value of \code{bandw}. Default value is \code{0.25}, indicating that all slopes within 25th quantiles of the maximum slopes on both sides of the average slope are categorised as \code{central} class.
+#' @param reference [numeric] Specifying the reference line from which the direction of each group is measured. Options are: \code{1}: slope of mean trajectory, \code{2}: slope of medoid trajectory, \code{3}: slope of a horizontal line (i.e. slope = 0). Default: \code{1}.
+#' @param N.quant [numeric] Number of equal intervals (quantiles) to create between the reference line \code{(R)} and the medoids \code{(M)} of the most-diverging groups of both sides of \code{(R)}. Default is \code{4} - meaning quartile subdivisions on each side of \code{(R)}. In this scenario, the function returns the quartile in which the medoid of each group falls. This result can be used to further categorise the groups into 'classes'. For example, groups that fall within the \code{1st} quartile may be classified as 'Stable' groups (Adepeju et al. 2019).
 #' @examples
 #' print(traj)
 #' traj <- dataImputation(traj, id_field = TRUE, method = 1, replace_with = 1,
@@ -16,21 +17,27 @@
 #' clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3,6))
 #' clustr <- as.vector(clustr$optimSolution)
 #' print(statPrint(clustr, traj, id_field=TRUE, type="lines", y.scaling="fixed"))
-#' print(statPrint(clustr, traj, id_field=TRUE, bandw = 0.30, type="stacked"))
+#' print(statPrint(clustr, traj, id_field=TRUE, reference = 1, N.quant = 8, type="stacked"))
 #' @details Generates the descriptive and change statistics of the trajectory groupings. Given a vector of group membership (labels) and the corresponding data matrix (or data.frame) indexed in the same order, this function generates all the descriptive and change statistics of all the groups.
 #' The function can generate a line and an area stacked plot drawing from the functionalities of the \code{ggplot2} library. For a more customised visualisation, we recommend that users deploy \code{ggplot2} directly (\code{Wickham H. (2016)}).
 #' @return A plot showing group membership or sizes (proportion) and statistics.
+#' @references \code{1}. Adepeju, M. et al. (2019). Anchored k-medoids: A novel adaptation of k-means further refined to measure inequality in the exposure to crime across micro places (Submitted).
 #' @keywords plot, clusters
 #' @rawNamespace import(reshape2, ggplot2, stats)
 #' @references \code{Wickham H. (2016). Elegant graphics for Data Analysis. Spring-Verlag New York (2016)}
 #' @export
 
-statPrint <- function(clustr, traj, id_field=TRUE, bandw = 0.25, type = "lines", y.scaling="fixed"){
+statPrint <- function(clustr, traj, id_field=TRUE, reference = 1, N.quant = 4, type = "lines", y.scaling="fixed"){
 
   #joining the data with the clusters
   clustr <- data.frame(cbind(traj, clusters=clustr))
 
   dat <- traj #backing up the data
+  N.quant <- round(N.quant, digits = 0)
+
+  if(N.quant < 2 | N.quant > 10){
+    stop("*-------Please, enter an integer between 2 and 10 for the 'N.quant' argument'!!!-------*")
+  }
 
   #check if 'id_field' is a unique field
   if(id_field==TRUE){
@@ -169,6 +176,31 @@ statPrint <- function(clustr, traj, id_field=TRUE, bandw = 0.25, type = "lines",
   sl_List <- as.data.frame(cbind(1:nrow(sl_List), sl_List))
   colnames(sl_List) <- c("sn", "intersect","slope")  #head(sl_List)
 
+  #---------------------------------------------------------------------
+  #Select the reference line
+
+  #if the reference is citywide average
+  if(reference == 1){
+    #calculating the citywide trend (mean)
+    ref_slope <- mean(as.vector(sl_List$slope)) #citywide average.
+    ref_slope <- data.frame(cbind("City", round(ref_slope, digits = 8)))
+    colnames(ref_slope) <- c("gr", "slope")
+  }
+
+  if(reference == 2){
+    #calculating the medoid of all slopes
+    ref_slope <- median(as.vector(sl_List$slope)) #citywide average.
+    ref_slope <- data.frame(cbind("City", round(ref_slope, digits = 8)))
+    colnames(ref_slope) <- c("gr", "slope")
+  }
+
+  if(reference == 3){
+    #horizontal line as the reference (slope = 0)
+    ref_slope <- 0
+    ref_slope <- data.frame(cbind("City", round(ref_slope, digits = 8)))
+    colnames(ref_slope) <- c("gr", "slope")
+  }
+
   #Generate the linear trendlines for all trajectories (dropping all intersects)
   dat_slopp<- NULL
   for(n in 1:nrow(sl_List)){ #k<-1
@@ -181,10 +213,10 @@ statPrint <- function(clustr, traj, id_field=TRUE, bandw = 0.25, type = "lines",
     slope_sign_ <- NULL
     for(v in 1:2){ #v=1
       if(v==1){
-        all_1 <- round((length(which(dat_slopp[ids_, ncol(dat_slopp)]>0))/length(ids_))*100, digits = 1)  #head(dat_slopp)
+        all_1 <- round((length(which(dat_slopp[ids_, ncol(dat_slopp)]> as.numeric(as.character(ref_slope$slope))))/length(ids_))*100, digits = 1)  #head(dat_slopp)
       }
       if(v==2){
-        all_2 <- round((length(which(dat_slopp[ids_, ncol(dat_slopp)]<0))/length(ids_))*100, digits = 1)  #head(dat_slopp)
+        all_2 <- round((length(which(dat_slopp[ids_, ncol(dat_slopp)]< as.numeric(as.character(ref_slope$slope))))/length(ids_))*100, digits = 1)  #head(dat_slopp)
       }
     }
     change_Stats  <- rbind(change_Stats , cbind(d_, all_1, all_2))
@@ -195,44 +227,53 @@ statPrint <- function(clustr, traj, id_field=TRUE, bandw = 0.25, type = "lines",
   change_Stats <- as.data.frame(cbind(group, change_Stats))
   attrib2 <- c("'%+ve Traj.'-> % of trajectories with positive slopes; '%+ve Traj.'-> % of trajectories with negative slopes")
 
-  #---------------------------------------------------------------------
-  #determining the average slope and slopes of all groups (determining the classes of each groups)
-  #citywide slope
-  ave_slope <- mean(as.vector(sl_List$slope)) #citywide average.
-  ave_slope <- data.frame(cbind("City", round(ave_slope, digits = 8)))
-  colnames(ave_slope) <- c("gr", "slope")
-
-  clas_ <- matrix(0, length(clusters_uni), 1)
-  #group slopes
-  gr_slopes <- NULL
+#-----------------------------------------------------------------
+#create the 'N.quant' intervals on each side of the reference line
+#get the medoid of each group
+gr_medoid <- NULL
   for(h_ in 1:length(clusters_uni)){ #h_<-1
-    gr_slopes <- rbind(gr_slopes, cbind(clusters_uni[h_], round(mean(as.vector(sl_List$slope)[which(clusters==clusters_uni[h_])]), digits=8)))
+    gr_medoid <- rbind(gr_medoid, cbind(clusters_uni[h_], round(median(as.vector(sl_List$slope)[which(clusters==clusters_uni[h_])]), digits=8)))
   }
-  gr_slopes <- data.frame(gr_slopes)
-  colnames(gr_slopes) <- c("gr","slope")
+  gr_medoid <- data.frame(gr_medoid)
+  colnames(gr_medoid) <- c("gr","slope")
 
-  #split the group slope into three classe using the 'bandw' value)
-  temp_upper_classes <- gr_slopes[which(as.numeric(as.character(gr_slopes$slope)) < as.numeric(as.character(ave_slope$slope))),] #separating the slopes into two
-  #append the citywide slope
-  all_min <- c(as.numeric(as.character(temp_upper_classes$slope)), as.numeric(as.character(ave_slope$slope)))
-  #what's the quantile value
-  upper_clas <- which(all_min < as.vector(round(quantile(all_min, (1-bandw)) , digits=8)))  #bandw =
-  clas_[upper_clas] <- "Rising"
+  #determine the quantile in which each medoid falls
 
-  #determining the 'lower' class from the remaining groups.
-  temp_lower_classes <- gr_slopes[which(as.numeric(as.character(gr_slopes$slope)) > as.numeric(as.character(ave_slope$slope))),] #separating the slopes into two
-  #append the citywide slope
-  all_max <- c(as.numeric(as.character(ave_slope$slope)), as.numeric(as.character(temp_lower_classes$slope)))
-  #what's the quantile value
-  lower_clas <- which(all_max > as.vector(round(quantile(all_max, bandw) , digits=8)))  #bandw =
-  clas_[nrow(gr_slopes) - (0:(length(lower_clas)-1))] <- "Falling"
+  #first, collate all medoids that are falling relative to the reference line
+  temp_falling_ <- gr_medoid[which(as.numeric(as.character(gr_medoid$slope)) < as.numeric(as.character(ref_slope$slope))),] #separating the slopes into two
+  #append the reference slope
+  all_f <- c(as.numeric(as.character(temp_falling_$slope)), as.numeric(as.character(ref_slope$slope)))
+  #create the intervals
+  interv_ <- as.numeric(as.character(quantile(c(min(all_f), max(all_f)) , probs = seq(0, 1, 1/N.quant))))  #N.quant=4
+  #determine where medoid of each group falls
+    int_V <- findInterval(as.numeric(as.character(temp_falling_$slope)), interv_, all.inside = TRUE)
+    intervals_fall <- (N.quant:1)[int_V]
 
-  #input for the Stable group
-  clas_[which(!clas_%in%c("Rising", "Falling"))] <- "Stable"
-  class <- data.frame(class=clas_)
+  #first, collate all medoids that are falling relative to the reference line
+  temp_rising_ <- gr_medoid[which(as.numeric(as.character(gr_medoid$slope)) >= as.numeric(as.character(ref_slope$slope))),] #separating the slopes into two
+  #append the reference slope
+  all_r <- c(as.numeric(as.character(ref_slope$slope)), as.numeric(as.character(temp_rising_$slope)))
+  #create the intervals
+  interv_ <- as.numeric(as.character(quantile(c(min(all_r), max(all_r)) , probs = seq(0, 1, 1/N.quant))))  #N.quant=8
+  #determine where medoid of each group falls
+  intervals_rise <- findInterval(as.numeric(as.character(temp_rising_$slope)), interv_, all.inside = TRUE)
+
+  rank_positive <- c("1st (+ve)", "2nd (+ve)", "3rd (+ve)", "4th (+ve)", "5th (+ve)", "6th (+ve)", "7th (+ve)", "8th (+ve)", "9th (+ve)", "10th (+ve)")
+  rank_negative <- c("1st (-ve)", "2nd (-ve)", "3rd (-ve)", "4th (-ve)", "5th (-ve)", "6th (-ve)", "7th (-ve)", "8th (-ve)", "9th (-ve)", "10th (-ve)")
+
+  class1=rank_negative[intervals_fall]
+  class2=rank_positive[intervals_rise]
+  class = c(class1, class2)
+  class <- data.frame(class)
+  colnames(class) <- c(paste("Qtl:","1st-",N.quant, "th", sep=""))
+  if(N.quant==2){
+  colnames(class) <- c(paste("Qtl:","1st-",N.quant, "nd", sep=""))
+  }
+  if(N.quant==3){
+  colnames(class) <- c(paste("Qtl:","1st-",N.quant, "rd", sep=""))
+  }
+
   change_Stats <- cbind(change_Stats, class)
-
-  #-------------------
 
   #all_statistics <- list(descriptiveStats = desc_Stats, attrib.descr = attrib1, changeStats = change_Stats, attrib.slopes = attrib2)
   all_statistics <- list(descriptiveStats = desc_Stats, changeStats = change_Stats)
@@ -242,6 +283,5 @@ statPrint <- function(clustr, traj, id_field=TRUE, bandw = 0.25, type = "lines",
 return(all_statistics)
 
 }
-
 
 
