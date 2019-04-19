@@ -1,6 +1,6 @@
-83c4515c8abc5832a7d6e21b6b86d5cc *DESCRIPTION
+9eb33f4eafd2bb278d50b59cb6f3c1c0 *DESCRIPTION
 fe2dd2e4fb94fce6dd54a4bce5edb85e *NAMESPACE
-abcd319ba84d076c04aeeb2637718d12 *NEWS.md
+0261939fd60bff0b58319bca957b57f1 *NEWS.md
 fdf18959a1e2ec72011a1fb00c097b0c *R/akmedoids.clust.R
 823b9134faaa758e5ff9c9041f4aff8d *R/alphaLabel.R
 0f7078a97dc347975c22e1673c95448b *R/dataImputation.R
@@ -11,13 +11,13 @@ eff882859527b68a4942e6e785513994 *R/rates.R
 983b31aa4ee9a9dd3e4bd44964f7c642 *R/statPrint.R
 48d2087cf3be7c81af938088c516da8a *R/traj.R
 4fa01f4767a1b516112f4f6a69975689 *R/wSpaces.R
-9e5e55cff5666c00e4a0b402dce96289 *README.md
-2030c84bc6c0826d3473ad3eed9845cf *build/vignette.rds
+56a0ac4aad1513064fb17d5a187a7655 *README.md
+7f8ef063ecbab46f9b862823fd4e6132 *build/vignette.rds
 8ce6a1594b7974f0ba79abe73e5661b4 *data/population.rda
 ee19b136a8f133a537b4603895204589 *data/traj.rda
 244abcfece538d43edd778e65921c6ae *inst/doc/akmedoids-vignette.R
-923ee0a36709ed52bd7816b3047aaa2c *inst/doc/akmedoids-vignette.Rmd
-e17100b38c25096c0e27f817795da68d *inst/doc/akmedoids-vignette.html
+f382ec2dc86e29cb4352a9f6d04563be *inst/doc/akmedoids-vignette.Rmd
+4eb8b597e1173a3b0d6b6046ce2bac70 *inst/doc/akmedoids-vignette.html
 2d9f20917cebb259588cdf66f199a31b *man/akmedoids.clust.Rd
 4e9e203c1942e00e6b6f273574d7f885 *man/alphaLabel.Rd
 b707c4203495ae74e2755b284cc5c558 *man/dataImputation.Rd
@@ -29,7 +29,7 @@ ea43f1807115f777566487420234520a *man/props.Rd
 a82ce0d4b25a7e0d1ef7661dd2ca3f2a *man/traj.Rd
 9c3e9c79e48124b985fb1f8d7f780b08 *man/wSpaces.Rd
 d3d1d78aa54ea60a1a4c4ff3ef50fcbd *vignettes/Nquant.png
-923ee0a36709ed52bd7816b3047aaa2c *vignettes/akmedoids-vignette.Rmd
+f382ec2dc86e29cb4352a9f6d04563be *vignettes/akmedoids-vignette.Rmd
 493da16ea398752c319f2a47cd4962e5 *vignettes/caliHara.png
 75c04cfa22594b1d53094c7a73e18d02 *vignettes/inequality.png
 5bf3db122c8f55f38a6f997386d28400 *vignettes/references.bib

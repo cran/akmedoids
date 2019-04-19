@@ -25,7 +25,7 @@ bibliography: references.bib
 abstract: The `'akmedoids'` package advances a set of R-functions for longitudinal clustering of long-term trajectories and determines the optimal solution based on the `Caliński-Harabatz` criterion (Caliński and Harabasz 1974). The package also includes a set of functions for addressing common data issues, such as missing entries and outliers, prior to conducting advance longitudinal data analysis. One of the key objectives of this package is to facilitate easy replication of a recent paper which examined small area inequality in the crime drop (see Adepeju et al. 2019). This document is created to provide a guide towards accomplishing this objective. Many of the functions provided in the `akmedoids` package may be applied to longitudinal data in general.
   
 vignette: >
-  %\VignetteIndexEntry{Put the title of your vignette here}
+  %\VignetteIndexEntry{A guide to measuring long-term inequality in the exposure to crime at micro-area levels using 'Akmedoids' package}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---

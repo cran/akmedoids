@@ -1,22 +1,19 @@
 ---
 title: "NEWS.md"
 author: "geoMADE"
-date: "18 April 2019"
+date: "19 April 2019"
 output: html_document
 ---
 
 ### R Markdown
 
-'Akmedoids' package updated (Version: v0.1.1)
+'Akmedoids' package updated (Version: v0.1.2)
 
 ### Updates:
 
-The followings are the two updates to the package.
+I editted the vignette in order to display the title. Currently I have "Put the title of your vignette here" on the website (i.e. https://cran.r-project.org/web/packages/akmedoids/). This is totally my mistake.
 
-1. 'statPrint' function is modified as follows:
-  (a) 'reference' argument is added in order to allow different reference lines to measure groups' angular deviation.
-  (b) 'N.quant' argument is added to allow a more comprehensive assessment of angular deviations of groups. 
-  (c) 'bandw' argument is removed (as it is no more necessary because of (a) and (b))
+I am sorry for any inconvenience.
 
-2. A 'vignette' folder added. The folder contains items necessary to render a worked example (.html) based on the package.
-
+Your faithfully.
+Monsuru.
