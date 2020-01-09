@@ -131,6 +131,7 @@ We facilitate the easy use of `akmedoids` through an open-source package using `
 require(knitr)
 library(flextable)
 library(kableExtra)
+library(clusterCrit)
 ```
 
 ```{r, echo=FALSE, include=FALSE}
@@ -142,7 +143,6 @@ col4 <- c("Calculates any missing entries (`NA`, `Inf`, `null`) in a longitudina
 tble <- data.frame(col1, col2, col3, col4)
 tble <- tble
 ```
-
 
 ```{r table1, results='asis', echo=FALSE, tidy.opts=list(width.cutoff=50)}
 knitr::kable(tble, caption = "Table 1. `Data manipulation` functions", col.names = c("SN","Function","Title","Description")) %>%
@@ -345,7 +345,7 @@ Given a longitudinal data, the `props` function converts each data point (i.e. e
 ```{r, eval=TRUE}
 
 #Proportions of crimes per 200 residents
-prop_crime_per200_people <- props(crime_per_200_people, id_field = TRUE)
+prop_crime_per200_people <- props(crime_per_200_people, id_field = TRUE, scale = 1, digits=2)
 
 #view the full output
 prop_crime_per200_people
@@ -417,7 +417,7 @@ Please see the `akmedoids` user manual for the remaining `data manipulation` fun
 
 #2. Data Clustering
 
-Table 2 shows the two main functions required to carry out the longitudinal clustering and generate the descriptive statistics of the resulting groups. The relevant functions are `akmedoids.clust` and `statPrint`. The `akmedoids.clust` function clusters trajectories according to the similarities of their long-term trends, while the `statPrint` function extracts descriptive and change statistics for each of the clusters. The latter also generates `performance` plots for the best cluster solution.
+Table 2 shows the two main functions required to carry out the longitudinal clustering and generate the descriptive statistics of the resulting groups. The relevant functions are `akmedoids.clust` and `statPrint`. The `akmedoids.clust` function clusters trajectories according to the similarities of their long-term trends, while the `statPrint` function extracts descriptive and change statistics for each of the clusters. The latter also generates `quality` plots for the best cluster solution.
 
 The long-term trends of trajectories are defined in terms of a set of OLS regression lines. This allows the clustering function to classify the final groupings in terms of their slopes as `rising`, `stable`, and `falling`. The key benefits of this implementation is that it allows the clustering process to ignore the short-term fluctuations of actual trajectories and focus on their long-term linear trends. Adepeju and colleagues (2019) applied this technique in crime concentration research for measuring long-term inequalities in the exposure to crime at find-grained spatial scales. 
 
@@ -479,16 +479,16 @@ In the following sections, we provide a worked example of clustering with `akmed
 
 ***Dataset***: 
 
-Each trajectory in Figure `r fig$ref("figs5")` represents the proportion of crimes per 200 residents in each location over time. The goal is to first extract the inequality trend lines such as in Figure `r fig$ref("figs4")` and then cluster them according to the similarity of their slopes. For the `akmedoids.clust` function, a user sets the `k` value which may be an integer or a vector of length two specifying the minimum and maximum numbers of clusters to loop through. In the latter case, the `akmedoids.clust` function employs the `Calinki-Harabatz` score (@Calinski1974;  @Genolini2010) to determine the best cluster solution. The function is executed as follows:
+Each trajectory in Figure `r fig$ref("figs5")` represents the proportion of crimes per 200 residents in each location over time. The goal is to first extract the inequality trend lines such as in Figure `r fig$ref("figs4")` and then cluster them according to the similarity of their slopes. For the `akmedoids.clust` function, a user sets the `k` value which may be an integer or a vector of length two specifying the minimum and maximum numbers of clusters to loop through. In the latter case, the `akmedoids.clust` function employs either the `Silhouette` (@Rousseeuw1987)) or the `Calinski_Harabasz` score (@Calinski1974;  @Genolini2010) to determine the best cluster solution. The function is executed as follows:
 
 ```{r, echo=TRUE, include=TRUE}
 
 #clustering
-cluster_output <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
-                                  method = "linear", k = c(3,8))
+quality_plot <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
+                                  method = "linear", k = c(3,8), crit = "Calinski_Harabasz")
 
-#print cluster solution
-cluster_output
+#generate performance (quality) plot
+quality_plot
 
 ```
 
@@ -497,14 +497,21 @@ knitr::include_graphics("caliHara.png")
 ```
 
 
-In addition to the output messages (as shown above), the `akmedoids.clust` function generates a performance plot (Figure `r fig$ref("figs6")`) that shows the `Calinki-Harabatz` scores at different values of `k`. From the plot, the best value of `k` is highest at `k=5`, and therefore determined the best solution. Note that the group membership (labels) listed in the output message is that of the best solution determined, which contains five groups labelled from A to E according to increasing slopes. These labels can be extracted by typing the following command:   
+In addition to the performance plot (Figure `r fig$ref("figs6")`) that shows the `Calinki-Harabatz` scores at different values of `k`, the `akmedoids.clust` function also generates output messages which include the group memberships of the best solution, as determined quality criterion used. From the plot, the best value of `k` is the highest at `k=5`, and therefore determined as the best solution. It is recommended that the determination based on either of the quality criteria should be used complementarity with users judgement in relation to the problem at hand. 
+
+Given a value of `k`, the group membership (labels) of its cluster solution can be extracted by typing the following command: 
 
 ```{r, echo=TRUE, include=TRUE}
 
+#clustering
+cluster_output <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
+                                  method = "linear", k = c(5))
+
 #vector of group memberships
-as.vector(cluster_output$optimSolution) 
+as.vector(cluster_output$memberships) 
 
 ```
+
 
 Also, note that the indexes of the group memberships correspond to that of the trajectory object (`prop_crime_per200_people`) inputted into the function. That is, the membership labels, `"C"`, `"D"`, `"E"`, `....` are the group membership of the trajectories `"E01012628"`,`"E01004768"`,`"E01004803"`,`...` of the object `prop_crime_per200_people`.
 
@@ -527,11 +534,21 @@ In addition to the slope composition of trajectories found in each group, the qu
 
 ```{r, echo=TRUE, include=TRUE}
 
-#assigning cluster membership to a variable
-clustr <- as.vector(cluster_output$optimSolution) 
+#assigning k=5 cluster membership to a variable
+clustr <- as.vector(cluster_output$memberships) 
 
 #plotting the group membership
 print(statPrint(clustr, prop_crime_per200_people, id_field=TRUE, reference = 1, N.quant = 4, type="lines", y.scaling="fixed"))
+
+```
+
+```{r, echo=TRUE, include=TRUE}
+
+#assigning k=5 cluster membership to a variable
+clustr <- as.vector(cluster_output$memberships) 
+
+#plotting the group membership
+print(statPrint(clustr, prop_crime_per200_people, id_field=TRUE, reference = 1, N.quant = 4, type="stacked"))
 
 ```
 
@@ -548,13 +565,13 @@ In the context of the long-term inequality study, broad conclusions can be made 
 It is important to state that this proposed classification method is  simply advisory; you may devise a different approach or interpretation depending on your research questions and data.
 
 
-```{r figs9, echo=FALSE, fig.cap=fig$cap("figs9", "group performance over time"), out.width = '60%', fig.align="center"} 
+```{r figs9, echo=FALSE, fig.cap=fig$cap("figs9", "group quality over time"), out.width = '60%', fig.align="center"} 
 
 knitr::include_graphics("traj_perfm2.png")
 
 ```
 
-By changing the argument `type="line"` to `type="stacked"`, a `performance plot` is generated instead (see Figure `r fig$ref("figs9")`). Note that these plots make use of functions within the `ggplot2` library [@Wickham2016]. For a more customised visualisation, we recommend that users deploy the `ggplot2` library directly. 
+By changing the argument `type="line"` to `type="stacked"`, a `quality plot` is generated instead (see Figure `r fig$ref("figs9")`). Note that these plots make use of functions within the `ggplot2` library [@Wickham2016]. For a more customised visualisation, we recommend that users deploy the `ggplot2` library directly. 
 
 
 ```{r, echo=FALSE, include=FALSE}

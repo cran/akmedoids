@@ -4,8 +4,15 @@
 \alias{statPrint}
 \title{Descriptive (Change) statistics and plots}
 \usage{
-statPrint(clustr, traj, id_field = TRUE, reference = 1, N.quant = 4,
-  type = "lines", y.scaling = "fixed")
+statPrint(
+  clustr,
+  traj,
+  id_field = TRUE,
+  reference = 1,
+  N.quant = 4,
+  type = "lines",
+  y.scaling = "fixed"
+)
 }
 \arguments{
 \item{clustr}{[vector (charater)] A vector of cluster membership (labels). For instance, the result extracted from the \code{\link{akmedoids.clust}} function.}
@@ -38,8 +45,8 @@ traj <- dataImputation(traj, id_field = TRUE, method = 1, replace_with = 1,
 fill_zeros = FALSE)
 print(traj)
 traj <- props(traj, id_field = TRUE)
-clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3,6))
-clustr <- as.vector(clustr$optimSolution)
+clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = 5)
+clustr <- as.vector(clustr$memberships)
 print(statPrint(clustr, traj, id_field=TRUE, type="lines", y.scaling="fixed"))
 print(statPrint(clustr, traj, id_field=TRUE, reference = 1, N.quant = 8, type="stacked"))
 }
@@ -48,5 +55,3 @@ print(statPrint(clustr, traj, id_field=TRUE, reference = 1, N.quant = 8, type="s
 
 \code{Wickham H. (2016). Elegant graphics for Data Analysis. Spring-Verlag New York (2016)}
 }
-\keyword{clusters}
-\keyword{plot,}

@@ -4,7 +4,7 @@
 \alias{akmedoids.clust}
 \title{Anchored k-medoids clustering}
 \usage{
-akmedoids.clust(traj, id_field = FALSE, method = "linear", k = c(3,6))
+akmedoids.clust(traj, id_field = FALSE, method = "linear", k = c(3,6), crit="Silhouette")
 }
 \arguments{
 \item{traj}{[matrix (numeric)]: longitudinal data. Each row represents an individual trajectory (of observations). The columns show the observations at consecutive time steps.}
@@ -13,13 +13,15 @@ akmedoids.clust(traj, id_field = FALSE, method = "linear", k = c(3,6))
 
 \item{method}{[character] The parametric initialisation strategy. Currently, the only available method is a \code{linear} method, set as \code{"linear"}. This uses the time-dependent linear regression lines and the resulting groups are order in the order on increasing slopes.}
 
-\item{k}{[integer or vector (numeric)] either an exact integer number of clusters, or a vector of length two specifying the minimum and maximum numbers of clusters to be examined from which the best solution will be determined. In either case, the minimum number of clusters is \code{3}. The default is \code{c(3,6)}. The best solution is determined using the Calinski-Harabatz criterion \code{(Calinski T. & Harabasz J. 1974)}.}
+\item{k}{[integer or vector (numeric)] either an exact integer number of clusters, or a vector of length two specifying the minimum and maximum numbers of clusters to be examined from which the best solution will be determined. In either case, the minimum number of clusters is \code{3}. The default is \code{c(3,6)}.}
+
+\item{crit}{[character] a string specifying the type of the criterion to use for assessing the quality of the cluster solutions, when \code{k} is a vector of two values (as above). Default:\code{crit="Silhouette"}, use the average Silhouette width (\code{Rousseeuw P. J. 1987}). Using the \code{"Silhouette"} criterion, the optimal value of \code{k} can be determined as the elbow point of the curve. Other valid criterion is the "Calinski_Harabatz" (\code{Calinski T. & Harabatz J. 1974}) in which the maximum score represent the point of optimality. Having determined the optimal \code{k}, the function can then be re-run, using the exact (optimal) value of \code{k}.}
 }
 \value{
-The key output is a vector of cluster labels of length equal to the number of trajectories. Each label indicates the group membership of the corresponding trajectory in the \code{traj} object. In addition, a plot of the Calinski-Harabatz scores is shown if a vector of \code{k} is provided.
+If \code{k} is a vector of two numbers (see param. \code{k} details above), the output is a graphical plot of the quality scores of the cluster solutions. If \code{k} is an exact integer number of clusters, the function returns trajectory labels indicating the group membership of the corresponding trajectory in the \code{traj} object.
 }
 \description{
-Given a list of trajectories and a functional method, this function clusters the trajectories into a \code{k} number of groups. If a vector of two numbers is given, the function determines the best solution from those options based on the Calinski-Harabatz criterion.
+Given a list of trajectories and a functional method, this function clusters the trajectories into a \code{k} number of groups. If a vector of two numbers is given, the function determines the best solution from those options based on the Calinski-Harabasz criterion.
 }
 \details{
 This function works by first approximating the trajectories based on the chosen parametric forms (e.g. linear), and then partitions the original trajectories based on the form groupings, in similar fashion to k-means clustering \code{(Genolini et al. 2015)}. The key distinction of \code{akmedoids} compared with existing longitudinal approaches is that both the initial starting points as well as the subsequent cluster centers (as the iteration progresses) are based the selection of observations (medoids) as oppose to centroids.
@@ -30,11 +32,11 @@ print(traj)
 traj <- dataImputation(traj, id_field = TRUE, method = 2, replace_with = 1, fill_zeros = FALSE)
 traj <- props(traj, id_field = TRUE)
 print(traj)
-output <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3,6))
-print(output)  #type 'as.vector(output$optimSolution)'
+output <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3))
+print(output)  #type 'as.vector(output$memberships)'
 }
 \references{
-\code{1}. Genolini, C. et al. (2015). kml and kml3d: R Packages to Cluster Longitudinal Data. Journal of Statistical Software, 65(4), 1-34. URL http://www.jstatsoft.org/v65/i04/.
-\code{2}. Calinski T, Harabasz J (1974) A dendrite method for cluster analysis. Commun Stat 3:1-27.
-\code{3}. Genolini, C.et al. (2016) Package ‘longitudinalData’
+\code{1}. Genolini, C. et al. (2015) kml and kml3d: R Packages to Cluster Longitudinal Data. Journal of Statistical Software, 65(4), 1-34. URL http://www.jstatsoft.org/v65/i04/.
+\code{2}. Rousseeuw P. J. (1987) Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. J. Comput. Appl. Math 20:53–65.
+\code{3}. Calinski T, Harabasz J (1974) A dendrite method for cluster analysis. Commun Stat 3:1-27.
 }

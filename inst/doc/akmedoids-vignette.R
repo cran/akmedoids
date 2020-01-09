@@ -24,6 +24,7 @@ fig <- local({
 require(knitr)
 library(flextable)
 library(kableExtra)
+library(clusterCrit)
 
 ## ---- echo=FALSE, include=FALSE------------------------------------------
 
@@ -176,7 +177,7 @@ nrow(crime_per_200_people)
 ## ---- eval=TRUE----------------------------------------------------------
 
 #Proportions of crimes per 200 residents
-prop_crime_per200_people <- props(crime_per_200_people, id_field = TRUE)
+prop_crime_per200_people <- props(crime_per_200_people, id_field = TRUE, scale = 1, digits=2)
 
 #view the full output
 prop_crime_per200_people
@@ -268,11 +269,11 @@ print(p)
 ## ---- echo=TRUE, include=TRUE--------------------------------------------
 
 #clustering
-cluster_output <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
-                                  method = "linear", k = c(3,8))
+quality_plot <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
+                                  method = "linear", k = c(3,8), crit = "Calinski_Harabasz")
 
-#print cluster solution
-cluster_output
+#generate performance (quality) plot
+quality_plot
 
 
 ## ----figs6, echo=FALSE, fig.cap=fig$cap("figs6", "Clustering performance at different values of k"), out.width = '80%', fig.align="center"----
@@ -280,8 +281,12 @@ knitr::include_graphics("caliHara.png")
 
 ## ---- echo=TRUE, include=TRUE--------------------------------------------
 
+#clustering
+cluster_output <- akmedoids.clust(prop_crime_per200_people, id_field = TRUE, 
+                                  method = "linear", k = c(5))
+
 #vector of group memberships
-as.vector(cluster_output$optimSolution) 
+as.vector(cluster_output$memberships) 
 
 
 ## ----figs7, echo=FALSE, fig.cap=fig$cap("figs7", "Quantile sub-divisions of most-diverging groups (N.quant=4)"), out.width = '80%', fig.align="center"----
@@ -291,11 +296,20 @@ knitr::include_graphics("Nquant.png")
 
 ## ---- echo=TRUE, include=TRUE--------------------------------------------
 
-#assigning cluster membership to a variable
-clustr <- as.vector(cluster_output$optimSolution) 
+#assigning k=5 cluster membership to a variable
+clustr <- as.vector(cluster_output$memberships) 
 
 #plotting the group membership
 print(statPrint(clustr, prop_crime_per200_people, id_field=TRUE, reference = 1, N.quant = 4, type="lines", y.scaling="fixed"))
+
+
+## ---- echo=TRUE, include=TRUE--------------------------------------------
+
+#assigning k=5 cluster membership to a variable
+clustr <- as.vector(cluster_output$memberships) 
+
+#plotting the group membership
+print(statPrint(clustr, prop_crime_per200_people, id_field=TRUE, reference = 1, N.quant = 4, type="stacked"))
 
 
 ## ----figs8, echo=FALSE, fig.cap=fig$cap("figs8","group memberships"), out.width = '85%', fig.align="center"----
@@ -303,7 +317,7 @@ print(statPrint(clustr, prop_crime_per200_people, id_field=TRUE, reference = 1, 
 knitr::include_graphics("traj_perfm.png")
 
 
-## ----figs9, echo=FALSE, fig.cap=fig$cap("figs9", "group performance over time"), out.width = '60%', fig.align="center"----
+## ----figs9, echo=FALSE, fig.cap=fig$cap("figs9", "group quality over time"), out.width = '60%', fig.align="center"----
 
 knitr::include_graphics("traj_perfm2.png")
 

@@ -14,15 +14,14 @@
 #' fill_zeros = FALSE)
 #' print(traj)
 #' traj <- props(traj, id_field = TRUE)
-#' clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = c(3,6))
-#' clustr <- as.vector(clustr$optimSolution)
+#' clustr <- akmedoids.clust(traj, id_field = TRUE, method = "linear", k = 5)
+#' clustr <- as.vector(clustr$memberships)
 #' print(statPrint(clustr, traj, id_field=TRUE, type="lines", y.scaling="fixed"))
 #' print(statPrint(clustr, traj, id_field=TRUE, reference = 1, N.quant = 8, type="stacked"))
 #' @details Generates the descriptive and change statistics of the trajectory groupings. Given a vector of group membership (labels) and the corresponding data matrix (or data.frame) indexed in the same order, this function generates all the descriptive and change statistics of all the groups.
 #' The function can generate a line and an area stacked plot drawing from the functionalities of the \code{ggplot2} library. For a more customised visualisation, we recommend that users deploy \code{ggplot2} directly (\code{Wickham H. (2016)}).
 #' @return A plot showing group membership or sizes (proportion) and statistics.
 #' @references \code{1}. Adepeju, M. et al. (2019). Anchored k-medoids: A novel adaptation of k-means further refined to measure inequality in the exposure to crime across micro places (Submitted).
-#' @keywords plot, clusters
 #' @rawNamespace import(reshape2, ggplot2, stats)
 #' @references \code{Wickham H. (2016). Elegant graphics for Data Analysis. Spring-Verlag New York (2016)}
 #' @export

@@ -3,6 +3,7 @@
 export(akmedoids.clust)
 export(alphaLabel)
 export(dataImputation)
+export(elbowPoint)
 export(outlierDetect)
 export(props)
 export(rates)
