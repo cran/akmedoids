@@ -1,19 +1,30 @@
 #' @title Determine the elbow point on a curve
-#' @description Given a list of x, y coordinates on a curve, function determines the elbow point of the curve.
+#' @description Given a list of x, y coordinates on a curve,
+#' function determines the elbow point of the curve.
 #' @param x vector of x coordinates of points on the curve
 #' @param y vector of y coordinates of points on the curve
-#' @details highlight the maximum curvature to identify the elbow point (credit: 'github.com/agentlans')
+#' @details highlight the maximum curvature to identify the
+#' elbow point (credit: 'github.com/agentlans')
 #' @examples
+#'
 #' # Generate some curve
 #' x <- runif(100, min=-2, max=3)
 #' y <- -exp(-x) * (1+rnorm(100)/3)
 #' plot(x, y)
-#' # Plot elbow points
-#' abline(v=elbowPoint(x,y)$y, col="blue", pch=20, cex=3)
-#' @return an x, y coordinates of the elbow point.
+#' #Plot elbow points
+#' abline(v=elbow_point(x,y)$y, col="blue", pch=20, cex=3)
+#'
+#' @return indicate the optimal k value determined by
+#' the elbow point point.
+#' @importFrom stats smooth.spline approxfun optimize approx
+#' @importFrom signal sgolayfilt
 #' @export
-elbowPoint <- function(x, y) {
 
+
+elbow_point <- function(x, y) {
+
+  input_x <- x
+  input_y <- y
   # check for non-numeric or infinite values in the inputs
   is.invalid <- function(x) {
     any((!is.numeric(x)) | is.infinite(x))
@@ -27,9 +38,11 @@ elbowPoint <- function(x, y) {
 
   # generate value of curve at equally-spaced points
   new.x <- seq(from=min(x), to=max(x), length.out=length(x))
+
   # Smooths out noise using a spline
   sp <- smooth.spline(x, y)
-  new.y <- predict(sp, new.x)$y
+  new.yPred <- predict(sp, new.x)
+  new.y <- new.yPred$y
 
   # Finds largest odd number below given number
   largest.odd.num.lte <- function(x) {
@@ -43,7 +56,8 @@ elbowPoint <- function(x, y) {
 
   # Use Savitzky-Golay filter to get derivatives
   smoothen <- function(y, p=p, filt.length=NULL, ...) {
-    # Time scaling factor so that the derivatives are on same scale as original data
+    # Time scaling factor so that the derivatives are
+    #on same scale as original data
     ts <- (max(new.x) - min(new.x)) / length(new.x)
     p <- 3 # Degree of polynomial to estimate curve
     # Set filter length to be fraction of length of data
@@ -84,8 +98,12 @@ elbowPoint <- function(x, y) {
   # If curve needs flipping, then run same routine on flipped curve then
   # flip the results back
   if ((x.sign == -1) || (y.sign == -1)) {
-    results <- elbowPoint(x.sign * x, y.sign * y)
-    return(list(x = x.sign * results$x, y = y.sign * results$y))
+    results <- elbow_point(x.sign * x, y.sign * y)
+    solution <- list(input.x=input_x, input.y=input_y,
+                     fittedSpline = new.yPred, first.deriv = first.deriv,
+                    second.deriv = second.deriv, x = x.sign * results$x,
+                    y = y.sign * results$y)
+    return(solution)
   }
 
   # Find cutoff point for x
@@ -93,13 +111,14 @@ elbowPoint <- function(x, y) {
     # Find x where curvature is maximum
     curvature <- abs(second.deriv) / (1 + first.deriv^2)^(3/2)
 
-    if (max(curvature) < min(curvature) | max(curvature) < max(curvature)) {
-      cutoff.x = NA
+    if (max(curvature) < min(curvature) | max(curvature) < max(curvature)){
+      cutoff.x <- NA
     } else {
       # Interpolation function
       f <- approxfun(new.x, curvature, rule=1)
       # Minimize |f(new.x) - max(curvature)| over range of new.x
-      cutoff.x = optimize(function(new.x) abs(f(new.x) - max(curvature)), range(new.x))$minimum
+      cutoff.x <- optimize(function(new.x) abs(f(new.x) - max(curvature)),
+                           range(new.x))$minimum
     }
 
    if (is.na(cutoff.x)) {
@@ -107,8 +126,17 @@ elbowPoint <- function(x, y) {
     list(x=NA, y=NA)
     } else {
     # Return cutoff point on curve
-    approx(new.x, new.y, cutoff.x)
+    # approx(new.x, new.y, cutoff.x)
+    solution <- list(input.x=input_x, input.y=input_y,
+                     fittedSpline = new.yPred, first.deriv = first.deriv,
+                     second.deriv = second.deriv,
+                     x=approx(new.x, new.y, cutoff.x)$x,
+                     y=approx(new.x, new.y, cutoff.x)$y)
+    return(solution)
   }
 }
+
+
+
 
 
